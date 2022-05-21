@@ -8,6 +8,7 @@ describe("TestMemoryMapper", function () {
     await testMemoryMapping.deployed();
 
     await testMemoryMapping.test();
+    console.log("single read/write")
 
     let tx = await testMemoryMapping.testMem();
     let receipt = await tx.wait()
@@ -22,29 +23,61 @@ describe("TestMemoryMapper", function () {
     expect(gasMem.lt(gasStorage)).to.equal(true)
 
     console.log("\n\nMany read/writes \n\n");
+    let bound = 20;
+    let offset = 20;
 
-    let bound = 60;
-    tx = await testMemoryMapping.testMemExtended(bound);
+    tx = await testMemoryMapping.testMemExtended(bound, offset);
     receipt = await tx.wait()
     console.log("Gas used (mem test extended ", bound,"):", receipt.gasUsed.toString());
     gasMem = receipt.gasUsed;
 
-    tx = await testMemoryMapping.testStorageExtended(bound);
+    tx = await testMemoryMapping.testStorageExtended(bound, offset);
     receipt = await tx.wait()
     console.log("Gas used (storage test extended ", bound,"):", receipt.gasUsed.toString());
     gasStorage = receipt.gasUsed;
 
     expect(gasMem.lt(gasStorage)).to.equal(true)
 
-    bound = 150;
-    console.log("\n\nMany reads, single write \n\n");
+    console.log("\nthreshold\n")
+    offset = bound*offset;
+    bound = 60;
+    tx = await testMemoryMapping.testMemExtended(bound, offset);
+    receipt = await tx.wait()
+    console.log("Gas used (mem test extended ", bound,"):", receipt.gasUsed.toString());
+    gasMem = receipt.gasUsed;
 
-    tx = await testMemoryMapping.testMemExtended2(bound);
+    tx = await testMemoryMapping.testStorageExtended(bound, offset);
+    receipt = await tx.wait()
+    console.log("Gas used (storage test extended ", bound,"):", receipt.gasUsed.toString());
+    gasStorage = receipt.gasUsed;
+
+    expect(gasMem.lt(gasStorage)).to.equal(true)
+
+    console.log("\n\nMany reads, single write \n\n");
+    offset = bound*offset;
+    bound = 20;
+
+    tx = await testMemoryMapping.testMemExtended2(bound, offset);
     receipt = await tx.wait()
     console.log("Gas used (mem test extended2 ", bound,"):", receipt.gasUsed.toString());
     gasMem = receipt.gasUsed;
 
-    tx = await testMemoryMapping.testStorageExtended2(bound);
+    tx = await testMemoryMapping.testStorageExtended2(bound, offset);
+    receipt = await tx.wait()
+    console.log("Gas used (storage test extended2 ", bound,"):", receipt.gasUsed.toString());
+    gasStorage = receipt.gasUsed;
+
+    expect(gasMem.lt(gasStorage)).to.equal(true)
+    offset = bound*offset;
+    bound = 150;
+    console.log("\nthreshold\n")
+
+    tx = await testMemoryMapping.testMemExtended2(bound, offset);
+    receipt = await tx.wait()
+    console.log("Gas used (mem test extended2 ", bound,"):", receipt.gasUsed.toString());
+    gasMem = receipt.gasUsed;
+
+    tx = await testMemoryMapping.testStorageExtended2(bound, offset);
     receipt = await tx.wait()
     console.log("Gas used (storage test extended2 ", bound,"):", receipt.gasUsed.toString());
     gasStorage = receipt.gasUsed;

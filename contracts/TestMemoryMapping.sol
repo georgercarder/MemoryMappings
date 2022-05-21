@@ -50,12 +50,12 @@ contract TestMemoryMapping {
         require(ret == value, "not same");
     }
 
-    function testMemExtended(uint256 bound) external {
+    function testMemExtended(uint256 bound, uint256 offset) external {
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i;
+            key = i+offset; // so that hot storage slots won't have advantage
             value = i*1000;
             mm.add(bytes32(key), bytes32(value));
             (bool ok, bytes memory result) = mm.get(bytes32(key));
@@ -64,11 +64,11 @@ contract TestMemoryMapping {
         }
     }
 
-    function testStorageExtended(uint256 bound) external {
+    function testStorageExtended(uint256 bound, uint256 offset) external {
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i;
+            key = i+offset; // so that hot storage slots won't have advantage
             value = i*1000;
             storageMapping[key] = value;
             uint256 ret = storageMapping[key];
@@ -76,33 +76,33 @@ contract TestMemoryMapping {
         }
     }
 
-    function testMemExtended2(uint256 bound) external {
+    function testMemExtended2(uint256 bound, uint256 offset) external {
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i+bound; // so that hot storage slots won't have advantage
+            key = i+offset; // so that hot storage slots won't have advantage
             value = key*1000;
             mm.add(bytes32(key), bytes32(value));
         }
         // read one value.
-        key = 13+bound;
+        key = 13+offset;
         value = key*1000; // expected
         (bool ok, bytes memory result) = mm.get(bytes32(key));
         uint256 ret = ok ? uint256(abi.decode(result, (bytes32))) : 0;
         require(ret == value, "not same (mem)");
     }
 
-    function testStorageExtended2(uint256 bound) external {
+    function testStorageExtended2(uint256 bound, uint256 offset) external {
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i+bound; // so that hot storage slots won't have advantage
+            key = i+offset; // so that hot storage slots won't have advantage
             value = key*1000;
             storageMapping[key] = value;
         }
         // read one value.
-        key = 13+bound;
+        key = 13+offset;
         value = key*1000; // expected
         uint256 ret = storageMapping[key];
         require(ret == value, "not same (storage)");

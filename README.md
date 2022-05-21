@@ -15,24 +15,34 @@ See test printouts.
 ### test printout
 
 ```
-single read/write inside wrapper
-Gas used (mem test): 23513
-Gas used (storage test): 43640
+single read/write
+Gas used (mem test): 23491
+Gas used (storage test): 43707
 
 
 Many read/writes 
 
+Gas used (mem test extended  20 ): 189448
+Gas used (storage test extended  20 ): 462110
 
-Gas used (mem test extended  60 ): 1366361
-Gas used (storage test extended  60 ): 1370157
+threshold
+
+Gas used (mem test extended  60 ): 1378347
+Gas used (storage test extended  60 ): 1382122
 
 
 Many reads, single write 
 
+Gas used (mem test extended2  20 ): 113170
+Gas used (storage test extended2  20 ): 478332
 
-Gas used (mem test extended2  150 ): 3238392
-Gas used (storage test extended2  150 ): 3440241
+threshold
 
+Gas used (mem test extended2  150 ): 3238739
+Gas used (storage test extended2  150 ): 3440512
+
+
+```
 
 Not audited. Use at your own risk.
 
