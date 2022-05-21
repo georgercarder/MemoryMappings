@@ -1,0 +1,12 @@
+# MemoryMappings in Solidity 
+
+GPL-3 License Copyright (c) 2022 George Carder georgercarder@gmail.com
+
+You can define and use mappings in memory in solidity using this library. Don't trifle with writing to storage when you need a mapping.
+
+
+Not audited. Use at your own risk.
+
+Support my work on this library by donating ETH or other coins to
+
+`0x1331DA733F329F7918e38Bc13148832D146e5adE`
