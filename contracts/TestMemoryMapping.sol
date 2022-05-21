@@ -81,12 +81,12 @@ contract TestMemoryMapping {
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i;
-            value = i*1000;
+            key = i+bound; // so that hot storage slots won't have advantage
+            value = key*1000;
             mm.add(bytes32(key), bytes32(value));
         }
         // read one value.
-        key = 13;
+        key = 13+bound;
         value = key*1000; // expected
         (bool ok, bytes memory result) = mm.get(bytes32(key));
         uint256 ret = ok ? uint256(abi.decode(result, (bytes32))) : 0;
@@ -97,12 +97,12 @@ contract TestMemoryMapping {
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i;
-            value = i*1000;
+            key = i+bound; // so that hot storage slots won't have advantage
+            value = key*1000;
             storageMapping[key] = value;
         }
         // read one value.
-        key = 13;
+        key = 13+bound;
         value = key*1000; // expected
         uint256 ret = storageMapping[key];
         require(ret == value, "not same (storage)");
