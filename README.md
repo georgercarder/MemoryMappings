@@ -17,9 +17,8 @@ Not audited or analyzed for gas-efficiency. Use at your own risk.
         mm.add(bytes32(key), bytes32(dankness));
         (ok, result) = mm.get(bytes32(key));
         require(ok, "not ok");
-        bytes32 bRes = abi.decode(result, (bytes32));
-        console.log(uint256(bRes));
-        require(uint256(bRes) == dankness, "fail.");
+        uint256 res = uint256(abi.decode(result, (bytes32)));
+        require(res == dankness, "fail.");
 ```
 
 Support my work on this library by donating ETH or other coins to
