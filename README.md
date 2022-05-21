@@ -6,6 +6,14 @@ You can define and use mappings in memory in solidity using this library. Don't 
 
 Read/write to the memory map is cheaper in gas than the analogue in storage.
 
+##### test printout
+
+```
+Gas used (mem): 23491
+Gas used (storage): 43618
+```
+
+
 Not audited. Use at your own risk.
 
 ### example
