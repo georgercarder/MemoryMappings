@@ -67,13 +67,45 @@ contract TestMemoryMapping {
     function testStorageExtended(uint256 bound) external {
         uint256 key;
         uint256 value; 
-        for (uint256 i; i<10; ++i) {
+        for (uint256 i; i<bound; ++i) {
             key = i;
             value = i*1000;
             storageMapping[key] = value;
             uint256 ret = storageMapping[key];
             require(ret == value, "not same");
         }
+    }
+
+    function testMemExtended2(uint256 bound) external {
+        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
+        uint256 key;
+        uint256 value; 
+        for (uint256 i; i<bound; ++i) {
+            key = i;
+            value = i*1000;
+            mm.add(bytes32(key), bytes32(value));
+        }
+        // read one value.
+        key = 13;
+        value = key*1000; // expected
+        (bool ok, bytes memory result) = mm.get(bytes32(key));
+        uint256 ret = ok ? uint256(abi.decode(result, (bytes32))) : 0;
+        require(ret == value, "not same (mem)");
+    }
+
+    function testStorageExtended2(uint256 bound) external {
+        uint256 key;
+        uint256 value; 
+        for (uint256 i; i<bound; ++i) {
+            key = i;
+            value = i*1000;
+            storageMapping[key] = value;
+        }
+        // read one value.
+        key = 13;
+        value = key*1000; // expected
+        uint256 ret = storageMapping[key];
+        require(ret == value, "not same (storage)");
     }
 
 }
