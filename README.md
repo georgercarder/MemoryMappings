@@ -9,8 +9,8 @@ Read/write to the memory map is cheaper in gas than the analogue in storage.
 ##### test printout
 
 ```
-Gas used (mem): 23491
-Gas used (storage): 43618
+Gas used (mem test): 23491
+Gas used (storage test): 43618
 ```
 
 

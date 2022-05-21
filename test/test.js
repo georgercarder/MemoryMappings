@@ -11,12 +11,12 @@ describe("TestMemoryMapper", function () {
 
     let tx = await testMemoryMapping.testMem();
     let receipt = await tx.wait()
-    console.log("Gas used (mem):", receipt.gasUsed.toString());
+    console.log("Gas used (mem test):", receipt.gasUsed.toString());
     let gasMem = receipt.gasUsed;
 
     tx = await testMemoryMapping.testStorage();
     receipt = await tx.wait()
-    console.log("Gas used (storage):", receipt.gasUsed.toString());
+    console.log("Gas used (storage test):", receipt.gasUsed.toString());
     let gasStorage = receipt.gasUsed;
 
     expect(gasMem.lt(gasStorage)).to.equal(true)
