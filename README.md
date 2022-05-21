@@ -15,7 +15,7 @@ Not audited or analyzed for gas-efficiency. Use at your own risk.
         uint256 key = 123;
         uint256 dankness = 42069;
         mm.add(bytes32(key), bytes32(dankness));
-        (ok, result) = mm.get(bytes32(key));
+        (bool ok, bytes memory result) = mm.get(bytes32(key));
         require(ok, "not ok");
         uint256 res = uint256(abi.decode(result, (bytes32)));
         require(res == dankness, "fail.");
