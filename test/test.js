@@ -8,5 +8,17 @@ describe("TestMemoryMapper", function () {
     await testMemoryMapping.deployed();
 
     await testMemoryMapping.test();
+
+    let tx = await testMemoryMapping.testMem();
+    let receipt = await tx.wait()
+    console.log("Gas used (mem):", receipt.gasUsed.toString());
+    let gasMem = receipt.gasUsed;
+
+    tx = await testMemoryMapping.testStorage();
+    receipt = await tx.wait()
+    console.log("Gas used (storage):", receipt.gasUsed.toString());
+    let gasStorage = receipt.gasUsed;
+
+    expect(gasMem.lt(gasStorage)).to.equal(true)
   });
 });

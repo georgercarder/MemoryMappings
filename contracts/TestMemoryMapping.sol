@@ -7,6 +7,8 @@ import "hardhat/console.sol";
 contract TestMemoryMapping {
     using MemoryMappings for MemoryMappings.MemoryMapping;
 
+    mapping(uint256 => uint256) public storageMapping;
+
     constructor() {
     }
 
@@ -29,4 +31,23 @@ contract TestMemoryMapping {
         console.log(uint256(bRes));
         require(uint256(bRes) == dankness, "fail.");
     }
+
+    function testMem() external {
+        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
+        uint256 key = 123;
+        uint256 value = 42069; 
+        mm.add(bytes32(key), bytes32(value));
+        (bool ok, bytes memory result) = mm.get(bytes32(key));
+        uint256 ret = ok ? uint256(abi.decode(result, (bytes32))) : 0;
+        require(ret == value, "not same");
+    }
+
+    function testStorage() external {
+        uint256 key = 123;
+        uint256 value = 42069; 
+        storageMapping[key] = value;
+        uint256 ret = storageMapping[key];
+        require(ret == value, "not same");
+    }
+
 }
