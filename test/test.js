@@ -20,5 +20,20 @@ describe("TestMemoryMapper", function () {
     let gasStorage = receipt.gasUsed;
 
     expect(gasMem.lt(gasStorage)).to.equal(true)
+
+    console.log("\n\n")
+
+    let bound = 20;
+    tx = await testMemoryMapping.testMemExtended(bound);
+    receipt = await tx.wait()
+    console.log("Gas used (mem test extended ", bound,"):", receipt.gasUsed.toString());
+    gasMem = receipt.gasUsed;
+
+    tx = await testMemoryMapping.testStorageExtended(bound);
+    receipt = await tx.wait()
+    console.log("Gas used (storage test extended ", bound,"):", receipt.gasUsed.toString());
+    gasStorage = receipt.gasUsed;
+
+    expect(gasMem.lt(gasStorage)).to.equal(true)
   });
 });

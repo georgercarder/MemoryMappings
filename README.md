@@ -4,13 +4,21 @@ GPL-3 License Copyright (c) 2022 George Carder georgercarder@gmail.com
 
 You can define and use mappings in memory in solidity using this library. Don't trifle with writing to storage when you need a mapping, use this memory library instead.
 
-Read/write to the memory map is cheaper in gas than the analogue in storage.
+Up to certain threshold numbers, Read/write to the memory map is cheaper in gas than the analogue in storage.
+
+It appears this threshold is rather low (20 ish) but this could be useful in some applications.
 
 ##### test printout
 
 ```
-Gas used (mem test): 23491
-Gas used (storage test): 43618
+Gas used (mem test): 23535
+Gas used (storage test): 43662
+
+
+
+Gas used (mem test extended  20 ): 185189
+Gas used (storage test extended  20 ): 229812
+
 ```
 
 
