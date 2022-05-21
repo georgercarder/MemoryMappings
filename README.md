@@ -15,6 +15,7 @@ See test printouts.
 ### test printout
 
 ```
+single read/write inside wrapper
 Gas used (mem test): 23513
 Gas used (storage test): 43640
 
