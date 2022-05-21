@@ -5,7 +5,7 @@ GPL-3 License Copyright (c) 2022 George Carder georgercarder@gmail.com
 You can define and use mappings in memory in solidity using this library. Don't trifle with writing to storage when you need a mapping.
 
 
-Not audited. Use at your own risk.
+Not audited or analyzed for gas-efficiency. Use at your own risk.
 
 ### example
 
