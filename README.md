@@ -4,11 +4,7 @@ GPL-3 License Copyright (c) 2022 George Carder georgercarder@gmail.com
 
 You can define and use mappings in memory in solidity using this library. Don't trifle with writing to storage when you need a mapping, use this memory library instead.
 
-Up to certain threshold numbers, Read/write to the memory map is cheaper in gas than the analogue in storage.
-
-It appears this threshold is rather low (60 ish) for many read/writes but this could be useful in some applications.
-
-The threshold is better for many reads and single write. 
+So long as the key/value pairs are added somewhat randomly, Read/write to the memory map is cheaper in gas than the analogue in storage.
 
 See test printouts.
 
@@ -22,25 +18,26 @@ Gas used (storage test): 43707
 
 Many read/writes 
 
-Gas used (mem test extended  20 ): 189448
-Gas used (storage test extended  20 ): 462110
+
+Gas used (mem test extended  20 ): 124079
+Gas used (storage test extended  20 ): 467316
 
 threshold
 
-Gas used (mem test extended  60 ): 1378347
-Gas used (storage test extended  60 ): 1382122
+Gas used (mem test extended  1000 ): 17962238
+Gas used (storage test extended  1000 ): 23269980
 
 
 Many reads, single write 
 
-Gas used (mem test extended2  20 ): 113170
-Gas used (storage test extended2  20 ): 478332
+
+Gas used (mem test extended2  1000 ): 6162685
+Gas used (storage test extended2  1000 ): 23267068
 
 threshold
 
-Gas used (mem test extended2  150 ): 3238739
-Gas used (storage test extended2  150 ): 3440512
-
+Gas used (mem test extended2  1000 ): 6227349
+Gas used (storage test extended2  1000 ): 23267068
 
 ```
 

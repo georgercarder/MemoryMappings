@@ -40,7 +40,7 @@ describe("TestMemoryMapper", function () {
 
     console.log("\nthreshold\n")
     offset = bound*offset;
-    bound = 60;
+    bound = 1000;
     tx = await testMemoryMapping.testMemExtended(bound, offset);
     receipt = await tx.wait()
     console.log("Gas used (mem test extended ", bound,"):", receipt.gasUsed.toString());
@@ -55,7 +55,7 @@ describe("TestMemoryMapper", function () {
 
     console.log("\n\nMany reads, single write \n\n");
     offset = bound*offset;
-    bound = 20;
+    bound = 1000;
 
     tx = await testMemoryMapping.testMemExtended2(bound, offset);
     receipt = await tx.wait()
@@ -69,7 +69,7 @@ describe("TestMemoryMapper", function () {
 
     expect(gasMem.lt(gasStorage)).to.equal(true)
     offset = bound*offset;
-    bound = 150;
+    bound = 1000;
     console.log("\nthreshold\n")
 
     tx = await testMemoryMapping.testMemExtended2(bound, offset);

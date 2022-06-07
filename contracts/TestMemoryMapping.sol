@@ -55,7 +55,7 @@ contract TestMemoryMapping {
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i+offset; // so that hot storage slots won't have advantage
+            key = uint256(keccak256(abi.encode(i+offset))); // so that hot storage slots won't have advantage
             value = i*1000;
             mm.add(bytes32(key), bytes32(value));
             (bool ok, bytes memory result) = mm.get(bytes32(key));
@@ -68,7 +68,7 @@ contract TestMemoryMapping {
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i+offset; // so that hot storage slots won't have advantage
+            key = uint256(keccak256(abi.encode(i+offset))); // so that hot storage slots won't have advantage
             value = i*1000;
             storageMapping[key] = value;
             uint256 ret = storageMapping[key];
@@ -81,13 +81,13 @@ contract TestMemoryMapping {
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i+offset; // so that hot storage slots won't have advantage
-            value = key*1000;
+            key = uint256(keccak256(abi.encode(i+offset))); // so that hot storage slots won't have advantage
+            value = i*offset*1000;
             mm.add(bytes32(key), bytes32(value));
         }
         // read one value.
-        key = 13+offset;
-        value = key*1000; // expected
+        key = uint256(keccak256(abi.encode(13+offset)));
+        value = 13*offset*1000; // expected
         (bool ok, bytes memory result) = mm.get(bytes32(key));
         uint256 ret = ok ? uint256(abi.decode(result, (bytes32))) : 0;
         require(ret == value, "not same (mem)");
@@ -97,13 +97,13 @@ contract TestMemoryMapping {
         uint256 key;
         uint256 value; 
         for (uint256 i; i<bound; ++i) {
-            key = i+offset; // so that hot storage slots won't have advantage
-            value = key*1000;
+            key = uint256(keccak256(abi.encode(i+offset))); // so that hot storage slots won't have advantage
+            value = i*offset*1000;
             storageMapping[key] = value;
         }
         // read one value.
-        key = 13+offset;
-        value = key*1000; // expected
+        key = uint256(keccak256(abi.encode(13+offset)));
+        value = 13*offset*1000; // expected
         uint256 ret = storageMapping[key];
         require(ret == value, "not same (storage)");
     }

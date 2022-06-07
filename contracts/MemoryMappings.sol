@@ -74,7 +74,7 @@ library MemoryMappings {
             tree.payload = payload;
             return;
         }
-        uint256 idx = 0;
+        uint256 idx;
         if (tree.value > value) idx = 1;
         if (tree.neighbors[idx].exists) {
             add(tree.neighbors[idx], value, payload);
@@ -85,7 +85,7 @@ library MemoryMappings {
 
     function get(Tree memory tree, uint256 value) internal pure returns(Tree memory) {
         if (!tree.exists || tree.value == value) return tree;
-        uint256 idx = 0;
+        uint256 idx;
         if (tree.value > value) idx = 1;
         return get(tree.neighbors[idx], value);
     }
