@@ -43,7 +43,7 @@ contract MemoryMapsTest is Test {
        */
 
         for (uint256 i; i < bound; ++i) {
-            uint256 key = arrA[i]; 
+            uint256 key = arrA[i];
             bytes32 value = keccak256(abi.encode(key));
             //console.log(uint256(value));
             //console.log(uint256(arrB[i]));
@@ -108,7 +108,7 @@ contract MemoryMapsTest is Test {
         uint256 gasBefore;
         for (uint256 i; i < bound; ++i) {
             bytes32 key = keccak256(abi.encode(i));
-            bytes memory value = bytes.concat(bytes("hello_"), abi.encode(keccak256("cat??")), abi.encode(i));
+            bytes memory value = bytes.concat(bytes("hello_cat??"), abi.encode(keccak256(abi.encode(i))));
             gasBefore = gasleft();
             MemoryMappings.add(mm, key, value);
             gasTotal += gasBefore - gasleft();
@@ -128,7 +128,7 @@ contract MemoryMapsTest is Test {
         /*
         for (uint256 i; i < bound; ++i) {
             uint256 key = arrA[i]; 
-            bytes memory value = bytes.concat(bytes("hello_"), abi.encode(keccak256("cat??")), abi.encode(key));
+            bytes memory value = bytes.concat(bytes("hello_cat??"), abi.encode(keccak256(abi.encode(i))));
             // FIXME
             console.log(string(value));
             console.log(string(arrB[i]));
@@ -145,7 +145,7 @@ contract MemoryMapsTest is Test {
         console.log("----");
         for (uint256 i; i < bound; ++i) {
             bytes32 key = keccak256(abi.encode(i));
-            bytes memory expectedValue = bytes.concat(bytes("hello_"), abi.encode(keccak256("cat??")), abi.encode(i));
+            bytes memory expectedValue = bytes.concat(bytes("hello_cat??"), abi.encode(keccak256(abi.encode(i))));
             gasBefore = gasleft();
             (ok, value) = MemoryMappings.get(mm, key);
             gasUsed = gasBefore - gasleft();

@@ -33,7 +33,7 @@ library MemoryMappings {
     }
 
     function add(MemoryMapping memory mm, bytes32 key, bytes memory value) internal pure {
-      /*
+        /*
         assembly {
             mstore(0x00, key)
             key := keccak256(0x00, 0x20) // hash of key ensures tree is more balanced
@@ -51,7 +51,7 @@ library MemoryMappings {
     }
 
     function get(MemoryMapping memory mm, bytes32 key) internal pure returns (bool ok, bytes memory ret) {
-      /*
+        /*
         assembly {
             mstore(0x00, key)
             key := keccak256(0x00, 0x20) // recall, hash of key ensures tree is more balanced.. see add(..) above
@@ -132,17 +132,15 @@ library MemoryMappings {
 
         // assembly does this:
 
-        arrayA[idx] = tree.value;
-        arrayB[idx++] = tree.payload;
+        //arrayA[idx] = tree.value;
+        //arrayB[idx++] = tree.payload;
 
-        /*
         assembly {
             mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x20)))
 
             mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
             idx := add(idx, 1)
         }
-        */
         other = tree.neighbors[1];
         if (other.exists) idx = readInto(other, idx, arrayA, arrayB); // right
         return idx;
@@ -159,17 +157,15 @@ library MemoryMappings {
 
         // assembly does this:
 
-        arrayA[idx] = tree.value;
-        arrayB[idx++] = abi.decode(tree.payload, (uint256));
+        //arrayA[idx] = tree.value;
+        //arrayB[idx++] = abi.decode(tree.payload, (uint256));
 
-        /*
         assembly {
             mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x20)))
 
             mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(mload(add(tree, 0x40)), 0x20)))
             idx := add(idx, 1)
         }
-        */
         other = tree.neighbors[1];
         if (other.exists) idx = readInto(other, idx, arrayA, arrayB); // right
         return idx;
