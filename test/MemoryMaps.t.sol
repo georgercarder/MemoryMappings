@@ -8,7 +8,7 @@ import "../src/MemoryMappings.sol";
 contract MemoryMapsTest is Test {
     function setUp() public {}
 
-    uint256 public bound = 4;
+    uint256 public bound = 100;
 
     function test_benchmark_words() public {
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
@@ -125,16 +125,11 @@ contract MemoryMapsTest is Test {
         console.log("%d readInto gas", gasTotal);
         console.log("%d readInto per elt", gasTotal / bound);
 
-        /*
         for (uint256 i; i < bound; ++i) {
-            uint256 key = arrA[i]; 
-            bytes memory value = bytes.concat(bytes("hello_cat??"), abi.encode(keccak256(abi.encode(i))));
-            // FIXME
-            console.log(string(value));
-            console.log(string(arrB[i]));
-            assertEq(keccak256(arrB[i]), keccak256(value));
+            uint256 key = arrA[i];
+            (bool ok, bytes memory expectedValue) = MemoryMappings.get(mm, bytes32(key));
+            assertEq(keccak256(arrB[i]), keccak256(expectedValue));
         }
-        */
 
         bool ok;
         bytes memory value;

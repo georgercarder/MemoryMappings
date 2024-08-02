@@ -11,7 +11,12 @@ library MemoryMappings {
     }
 
     function newMemoryMapping(bytes32 key, bytes memory value) internal pure returns (MemoryMapping memory) {
-        return MemoryMapping({tree: newNode(uint256(key), value)});
+        uint256 orderingKey;
+        assembly {
+            mstore(0x00, key)
+            orderingKey := keccak256(0x00, 0x20) // hash of key ensures tree is more balanced
+        }
+        return MemoryMapping({tree: newNode(orderingKey, uint256(key), value)});
     }
 
     function add(MemoryMapping memory mm, bytes32 key, bytes32 value) internal pure {
@@ -19,13 +24,12 @@ library MemoryMappings {
         assembly {
             mstore(add(bValue, 0x20), value)
         }
-        /*
+        uint256 orderingKey;
         assembly {
             mstore(0x00, key)
-            key := keccak256(0x00, 0x20) // hash of key ensures tree is more balanced
+            orderingKey := keccak256(0x00, 0x20) // hash of key ensures tree is more balanced
         }
-        */
-        add(mm.tree, uint256(key), bValue);
+        add(mm.tree, orderingKey, uint256(key), bValue);
     }
 
     function add(MemoryMapping memory mm, bytes memory key, bytes memory value) internal pure {
@@ -33,13 +37,12 @@ library MemoryMappings {
     }
 
     function add(MemoryMapping memory mm, bytes32 key, bytes memory value) internal pure {
-        /*
+        uint256 orderingKey;
         assembly {
             mstore(0x00, key)
-            key := keccak256(0x00, 0x20) // hash of key ensures tree is more balanced
+            orderingKey := keccak256(0x00, 0x20) // hash of key ensures tree is more balanced
         }
-       */
-        add(mm.tree, uint256(key), value);
+        add(mm.tree, orderingKey, uint256(key), value);
     }
 
     function add(MemoryMapping memory mm, bytes memory key, bytes32 value) internal pure {
@@ -51,17 +54,16 @@ library MemoryMappings {
     }
 
     function get(MemoryMapping memory mm, bytes32 key) internal pure returns (bool ok, bytes memory ret) {
-        /*
+        uint256 orderingKey;
         assembly {
             mstore(0x00, key)
-            key := keccak256(0x00, 0x20) // recall, hash of key ensures tree is more balanced.. see add(..) above
+            orderingKey := keccak256(0x00, 0x20) // recall, hash of key ensures tree is more balanced.. see add(..) above
         }
-       */
-        Tree memory node = get(mm.tree, uint256(key));
+        Tree memory node = get(mm.tree, orderingKey);
         if (node.exists) {
             ok = true;
             assembly {
-                ret := mload(add(node, 0x40))
+                ret := mload(add(node, 0x60))
             }
         }
     }
@@ -74,7 +76,8 @@ library MemoryMappings {
 
     struct Tree {
         bool exists;
-        uint256 value; // sort by value in descending order max -> min
+        uint256 orderingKey; // sort by key in descending order max -> min
+        uint256 key;
         bytes payload; // optional arbitrary payload
         Tree[] neighbors; // 0-left, 1-right
     }
@@ -85,37 +88,38 @@ library MemoryMappings {
         return tree;
     }
 
-    function newNode(uint256 value, bytes memory payload) internal pure returns (Tree memory) {
-        return Tree({exists: true, value: value, payload: payload, neighbors: new Tree[](2)});
+    function newNode(uint256 orderingKey, uint256 key, bytes memory payload) internal pure returns (Tree memory) {
+        return Tree({exists: true, orderingKey: orderingKey, key: key, payload: payload, neighbors: new Tree[](2)});
     }
 
-    function fillNode(Tree memory tree, uint256 value, bytes memory payload) internal pure {
+    function fillNode(Tree memory tree, uint256 orderingKey, uint256 key, bytes memory payload) internal pure {
         tree.exists = true;
-        tree.value = value;
+        tree.orderingKey = orderingKey;
+        tree.key = key;
         tree.payload = payload;
     }
 
-    function add(Tree memory tree, uint256 value, bytes memory payload) internal pure {
+    function add(Tree memory tree, uint256 orderingKey, uint256 key, bytes memory payload) internal pure {
         if (!tree.exists) {
-            fillNode(tree, value, payload);
+            fillNode(tree, orderingKey, key, payload);
             return;
         }
         uint256 idx;
-        if (tree.value > value) idx = 1;
+        if (tree.orderingKey > orderingKey) idx = 1;
         if (tree.neighbors[idx].exists) {
-            add(tree.neighbors[idx], value, payload);
+            add(tree.neighbors[idx], orderingKey, key, payload);
         } else {
-            tree.neighbors[idx] = newNode(value, payload);
+            tree.neighbors[idx] = newNode(orderingKey, key, payload);
         }
     }
 
-    function get(Tree memory tree, uint256 value) internal pure returns (Tree memory) {
+    function get(Tree memory tree, uint256 orderingKey) internal pure returns (Tree memory) {
         if (tree.exists) {
-            uint256 _value = tree.value;
-            if (_value < value) {
-                return get(tree.neighbors[0], value);
-            } else if (_value > value) {
-                return get(tree.neighbors[1], value);
+            uint256 _orderingKey = tree.orderingKey;
+            if (_orderingKey < orderingKey) {
+                return get(tree.neighbors[0], orderingKey);
+            } else if (_orderingKey > orderingKey) {
+                return get(tree.neighbors[1], orderingKey);
             }
         } // else dne
         return tree;
@@ -132,13 +136,13 @@ library MemoryMappings {
 
         // assembly does this:
 
-        //arrayA[idx] = tree.value;
+        //arrayA[idx] = tree.key;
         //arrayB[idx++] = tree.payload;
 
         assembly {
-            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x20)))
+            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
 
-            mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
+            mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x60)))
             idx := add(idx, 1)
         }
         other = tree.neighbors[1];
@@ -157,13 +161,13 @@ library MemoryMappings {
 
         // assembly does this:
 
-        //arrayA[idx] = tree.value;
+        //arrayA[idx] = tree.key;
         //arrayB[idx++] = abi.decode(tree.payload, (uint256));
 
         assembly {
-            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x20)))
+            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
 
-            mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(mload(add(tree, 0x40)), 0x20)))
+            mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(mload(add(tree, 0x60)), 0x20)))
             idx := add(idx, 1)
         }
         other = tree.neighbors[1];
