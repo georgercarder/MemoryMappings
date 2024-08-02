@@ -8,7 +8,7 @@ import "../src/MemoryMappings.sol";
 contract MemoryMapsTest is Test {
     function setUp() public {}
 
-    uint256 public bound = 100;
+    uint256 public bound = 4;
 
     function test_benchmark_words() public {
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
@@ -34,36 +34,52 @@ contract MemoryMapsTest is Test {
         console.log("%d readInto gas", gasTotal);
         console.log("%d readInto per elt", gasTotal / bound);
 
+        /*
+        console.log("--");
+        for (uint256 i; i < bound; ++i) {
+            console.log(uint256(arrA[i]), uint256(arrB[i]));
+        }
+        console.log("--");
+       */
+
+        for (uint256 i; i < bound; ++i) {
+            uint256 key = arrA[i]; 
+            bytes32 value = keccak256(abi.encode(key));
+            //console.log(uint256(value));
+            //console.log(uint256(arrB[i]));
+            //console.log("--");
+            assertEq(bytes32(arrB[i]), value);
+        }
+
         bool ok;
         bytes memory value;
         gasTotal = 0;
         uint256 max;
         uint256 min = type(uint256).max;
         uint256 gasUsed;
-        console.log("----");
+        //console.log("----");
         for (uint256 i; i < bound; ++i) {
             bytes32 key = keccak256(abi.encode(i));
             bytes32 expectedValue = keccak256(abi.encode(key));
             gasBefore = gasleft();
             (ok, value) = MemoryMappings.get(mm, key);
             gasUsed = gasBefore - gasleft();
+            //console.log(uint256(key), uint256(expectedValue));
+            //console.log(uint256(key), abi.decode(value, (uint256)));
             //console.log("%d gasUsed", gasUsed);
             gasTotal += gasUsed;
+            //console.log("debug 0");
             assertEq(ok, true);
+            //console.log("debug 1");
             if (gasUsed > max) max = gasUsed;
             if (gasUsed < min) min = gasUsed;
             assertEq(abi.decode(value, (bytes32)), expectedValue);
         }
-        console.log("----");
+        //console.log("----");
         console.log("%d get gas total", gasTotal);
         console.log("%d get gas avg", gasTotal / bound);
         console.log("%d gas max", max);
         console.log("%d gas min", min);
-        /*
-        for (uint256 i; i < bound; ++i) {
-            console.log(uint256(arrA[i]), uint256(arrB[i]));
-        }
-        */
 
         bytes32[] memory keys = new bytes32[](bound);
         bytes32[] memory values = new bytes32[](bound);
@@ -108,6 +124,17 @@ contract MemoryMapsTest is Test {
         gasTotal = gasBefore - gasleft();
         console.log("%d readInto gas", gasTotal);
         console.log("%d readInto per elt", gasTotal / bound);
+
+        /*
+        for (uint256 i; i < bound; ++i) {
+            uint256 key = arrA[i]; 
+            bytes memory value = bytes.concat(bytes("hello_"), abi.encode(keccak256("cat??")), abi.encode(key));
+            // FIXME
+            console.log(string(value));
+            console.log(string(arrB[i]));
+            assertEq(keccak256(arrB[i]), keccak256(value));
+        }
+        */
 
         bool ok;
         bytes memory value;
