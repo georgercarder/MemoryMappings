@@ -2,7 +2,7 @@
 
 You can define and use mappings in memory in solidity using this library. Don't trifle with writing to storage when you need a mapping, use this memory library instead.
 
-Read/write to the memory map is cheaper in gas than the analogue in storage. In this case read/write are O(log n).
+Read/write to the memory map is cheaper in gas than the analogue in storage. In best case read/write are O(log n).
 
 ### test printout
 
