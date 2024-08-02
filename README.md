@@ -1,60 +1,66 @@
-# MemoryMappings in Solidity 
+## Foundry
 
-GPL-3 License Copyright (c) 2022 George Carder georgercarder@gmail.com
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-You can define and use mappings in memory in solidity using this library. Don't trifle with writing to storage when you need a mapping, use this memory library instead.
+Foundry consists of:
 
-So long as the key/value pairs are added somewhat randomly, Read/write to the memory map is cheaper in gas than the analogue in storage. In this case read/write are O(log n). But if the key/value pairs are added in order with respect to the keys, then read/write could be up to O(n), in which case it'd be less efficient.
+-   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+-   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+-   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+-   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-See test printouts simulating "random" keys.
+## Documentation
 
-### test printout
+https://book.getfoundry.sh/
 
-```
-single read/write
-Gas used (mem test): 23491
-Gas used (storage test): 43707
+## Usage
 
+### Build
 
-Many read/writes 
-
-
-Gas used (mem test extended  20 ): 124079
-Gas used (storage test extended  20 ): 467316
-
-threshold
-
-Gas used (mem test extended  1000 ): 17962238
-Gas used (storage test extended  1000 ): 23269980
-
-
-Many reads, single write 
-
-
-Gas used (mem test extended2  1000 ): 6162685
-Gas used (storage test extended2  1000 ): 23267068
-
-threshold
-
-Gas used (mem test extended2  1000 ): 6227349
-Gas used (storage test extended2  1000 ): 23267068
-
+```shell
+$ forge build
 ```
 
-Not audited. Use at your own risk.
+### Test
 
-### example
-
-```
-        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
-        uint256 key = 123;
-        uint256 value = 42069; 
-        mm.add(bytes32(key), bytes32(value));
-        (bool ok, bytes memory result) = mm.get(bytes32(key));
-        uint256 ret = ok ? uint256(abi.decode(result, (bytes32))) : 0;
-        require(ret == value, "not same");
+```shell
+$ forge test
 ```
 
-Support my work on this library by donating ETH or other coins to
+### Format
 
-`0x1331DA733F329F7918e38Bc13148832D146e5adE`
+```shell
+$ forge fmt
+```
+
+### Gas Snapshots
+
+```shell
+$ forge snapshot
+```
+
+### Anvil
+
+```shell
+$ anvil
+```
+
+### Deploy
+
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
+
+### Cast
+
+```shell
+$ cast <subcommand>
+```
+
+### Help
+
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```
