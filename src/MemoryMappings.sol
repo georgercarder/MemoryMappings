@@ -131,6 +131,7 @@ library MemoryMappings {
             mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x20)))
 
             mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
+            idx := add(idx, 1)
         }
         other = tree.neighbors[1];
         if (other.exists) idx = readInto(other, idx, arrayA, arrayB); // right
