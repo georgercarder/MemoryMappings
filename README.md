@@ -1,66 +1,35 @@
-## Foundry
+# MemoryMappings in Solidity 
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+You can define and use mappings in memory in solidity using this library. Don't trifle with writing to storage when you need a mapping, use this memory library instead.
 
-Foundry consists of:
+Read/write to the memory map is cheaper in gas than the analogue in storage. In this case read/write are O(log n).
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+### test printout
 
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
 ```
 
-### Test
-
-```shell
-$ forge test
 ```
 
-### Format
+Not audited. Use at your own risk.
 
-```shell
-$ forge fmt
+### example
+
+```
+        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
+        uint256 key = 123;
+        uint256 value = 42069; 
+        mm.add(bytes32(key), bytes32(value));
+        (bool ok, bytes memory result) = mm.get(bytes32(key));
+        uint256 ret = ok ? uint256(abi.decode(result, (bytes32))) : 0;
+
+        // also can read into an array (SORTED VALUES OMG!!)
+
+        uint256[] memory arrA = new uint256[](bound);
+        uint256[] memory arrB = new uint256[](bound);
+
+        MemoryMappings.readInto(mm.tree, 0, arrA, arrB);
 ```
 
-### Gas Snapshots
+Support my work on this library by donating ETH or other coins to
 
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+`0x1331DA733F329F7918e38Bc13148832D146e5adE`
