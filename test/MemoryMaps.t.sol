@@ -11,7 +11,7 @@ contract MemoryMapsTest is Test {
     uint256 public bound = 100;
 
     function test_benchmark_words() public {
-        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
+        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: true});
 
         uint256 gasTotal;
         uint256 gasBefore;
@@ -104,7 +104,7 @@ contract MemoryMapsTest is Test {
     }
 
     function test_benchmark_bytes() public {
-        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping();
+        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: true});
 
         uint256 gasTotal;
         uint256 gasBefore;

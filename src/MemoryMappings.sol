@@ -3,21 +3,38 @@ pragma solidity ^0.8.25;
 
 library MemoryMappings {
     struct MemoryMapping {
+        bool sorted; // more efficient read/write when NOT sorted
         Tree tree;
     }
 
-    function newMemoryMapping() internal pure returns (MemoryMapping memory) {
-        return MemoryMapping({tree: newNode()});
+    function newMemoryMapping(bool sorted) internal pure returns (MemoryMapping memory) {
+        return MemoryMapping({sorted: sorted, tree: newNode()});
     }
 
-    function newMemoryMapping(bytes32 key, bytes memory value) internal pure returns (MemoryMapping memory) {
-        return MemoryMapping({tree: newNode(uint256(key), value)});
+    function newMemoryMapping(bool sorted, bytes32 key, bytes memory value)
+        internal
+        pure
+        returns (MemoryMapping memory)
+    {
+        if (!sorted) {
+            assembly {
+                mstore(0x0, key)
+                key := keccak256(0x0, 0x20)
+            }
+        }
+        return MemoryMapping({sorted: sorted, tree: newNode(uint256(key), value)});
     }
 
     function add(MemoryMapping memory mm, bytes32 key, bytes32 value) internal pure {
         bytes memory bValue = new bytes(32);
         assembly {
             mstore(add(bValue, 0x20), value)
+        }
+        if (!mm.sorted) {
+            assembly {
+                mstore(0x0, key)
+                key := keccak256(0x0, 0x20)
+            }
         }
         add(mm.tree, uint256(key), bValue);
     }
@@ -27,6 +44,12 @@ library MemoryMappings {
     }
 
     function add(MemoryMapping memory mm, bytes32 key, bytes memory value) internal pure {
+        if (!mm.sorted) {
+            assembly {
+                mstore(0x0, key)
+                key := keccak256(0x0, 0x20)
+            }
+        }
         add(mm.tree, uint256(key), value);
     }
 
@@ -39,6 +62,12 @@ library MemoryMappings {
     }
 
     function get(MemoryMapping memory mm, bytes32 key) internal pure returns (bool ok, bytes memory ret) {
+        if (!mm.sorted) {
+            assembly {
+                mstore(0x0, key)
+                key := keccak256(0x0, 0x20)
+            }
+        }
         Tree memory node = get(mm.tree, uint256(key));
         if (node.exists) {
             ok = true;
