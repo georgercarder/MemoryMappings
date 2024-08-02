@@ -45,9 +45,11 @@ contract MemoryMapsTest is Test {
         for (uint256 i; i < bound; ++i) {
             uint256 key = arrA[i];
             bytes32 value = keccak256(abi.encode(key));
-            //console.log(uint256(value));
-            //console.log(uint256(arrB[i]));
-            //console.log("--");
+            /*
+            console.log(uint256(value));
+            console.log(uint256(arrB[i]));
+            console.log("--");
+            */
             assertEq(bytes32(arrB[i]), value);
         }
 

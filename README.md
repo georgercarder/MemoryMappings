@@ -7,32 +7,30 @@ Read/write to the memory map is cheaper in gas than the analogue in storage. In 
 ### test printout
 
 ```
-[PASS] test_benchmark_bytes() (gas: 1657509)
 Logs:
-  252159 gas total
-  2521 gas per add
+  254440 gas total
+  2544 gas per add
   34613 readInto gas
   346 readInto per elt
   ----
   ----
-  360260 get gas total
-  3602 get gas avg
-  6732 gas max
-  583 gas min
-  21858 ignorant linear search gas
+  348583 get gas total
+  3485 get gas avg
+  6311 gas max
+  476 gas min
+  21850 ignorant linear search gas
 
-[PASS] test_benchmark_words() (gas: 1037022)
+[PASS] test_benchmark_words() (gas: 1032500)
 Logs:
-  263368 gas total
-  2633 gas per add
+  265751 gas total
+  2657 gas per add
   35513 readInto gas
   355 readInto per elt
-  310656 get gas total
-  3106 get gas avg
-  5782 gas max
-  542 gas min
-  21818 ignorant linear search gas
-
+  307526 get gas total
+  3075 get gas avg
+  5552 gas max
+  451 gas min
+  21813 ignorant linear search gas
 ```
 
 Not audited. Use at your own risk.
