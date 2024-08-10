@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: VPL - VIRAL PUBLIC LICENSE
 pragma solidity ^0.8.25;
 
 library MemoryMappings {
@@ -16,13 +16,14 @@ library MemoryMappings {
         pure
         returns (MemoryMapping memory)
     {
+        bytes32 ogKey = key;
         if (!sorted) {
             assembly {
                 mstore(0x0, key)
                 key := keccak256(0x0, 0x20)
             }
         }
-        return MemoryMapping({sorted: sorted, tree: newNode(uint256(key), value)});
+        return MemoryMapping({sorted: sorted, tree: newNode(uint256(key), uint256(ogKey), value)});
     }
 
     function add(MemoryMapping memory mm, bytes32 key, bytes32 value) internal pure {
@@ -30,13 +31,14 @@ library MemoryMappings {
         assembly {
             mstore(add(bValue, 0x20), value)
         }
+        bytes32 ogKey = key;
         if (!mm.sorted) {
             assembly {
                 mstore(0x0, key)
                 key := keccak256(0x0, 0x20)
             }
         }
-        add(mm.tree, uint256(key), bValue);
+        add(mm.tree, uint256(key), uint256(ogKey), bValue);
     }
 
     function add(MemoryMapping memory mm, bytes memory key, bytes memory value) internal pure {
@@ -44,13 +46,14 @@ library MemoryMappings {
     }
 
     function add(MemoryMapping memory mm, bytes32 key, bytes memory value) internal pure {
+        bytes32 ogKey = key;
         if (!mm.sorted) {
             assembly {
                 mstore(0x0, key)
                 key := keccak256(0x0, 0x20)
             }
         }
-        add(mm.tree, uint256(key), value);
+        add(mm.tree, uint256(key), uint256(ogKey), value);
     }
 
     function add(MemoryMapping memory mm, bytes memory key, bytes32 value) internal pure {
@@ -72,7 +75,7 @@ library MemoryMappings {
         if (node.exists) {
             ok = true;
             assembly {
-                ret := mload(add(node, 0x40))
+                ret := mload(add(node, 0x60))
             }
         }
     }
@@ -86,6 +89,7 @@ library MemoryMappings {
     struct Tree {
         bool exists;
         uint256 key; // sort by key in descending order max -> min
+        uint256 ogKey;
         bytes payload; // optional arbitrary payload
         Tree[] neighbors; // 0-left, 1-right
     }
@@ -96,27 +100,29 @@ library MemoryMappings {
         return tree;
     }
 
-    function newNode(uint256 key, bytes memory payload) internal pure returns (Tree memory) {
-        return Tree({exists: true, key: key, payload: payload, neighbors: new Tree[](2)});
+    function newNode(uint256 key, uint256 ogKey, bytes memory payload) internal pure returns (Tree memory) {
+        return Tree({exists: true, key: key, ogKey: ogKey, payload: payload, neighbors: new Tree[](2)});
     }
 
-    function fillNode(Tree memory tree, uint256 key, bytes memory payload) internal pure {
+    function fillNode(Tree memory tree, uint256 key, uint256 ogKey, bytes memory payload) internal pure {
         tree.exists = true;
         tree.key = key;
+        tree.ogKey = ogKey;
         tree.payload = payload;
     }
 
-    function add(Tree memory tree, uint256 key, bytes memory payload) internal pure {
+    function add(Tree memory tree, uint256 key, uint256 ogKey, bytes memory payload) internal pure {
         if (!tree.exists) {
-            fillNode(tree, key, payload);
+            fillNode(tree, key, ogKey, payload);
             return;
         }
         uint256 idx;
+        if (key == tree.key) return;
         if (tree.key > key) idx = 1;
         if (tree.neighbors[idx].exists) {
-            add(tree.neighbors[idx], key, payload);
+            add(tree.neighbors[idx], key, ogKey, payload);
         } else {
-            tree.neighbors[idx] = newNode(key, payload);
+            tree.neighbors[idx] = newNode(key, ogKey, payload);
         }
     }
 
@@ -130,6 +136,27 @@ library MemoryMappings {
             }
         } // else dne
         return tree;
+    }
+
+    function readInto(Tree memory tree, uint256 idx, uint256[] memory arrayA) internal pure returns (uint256) {
+        Tree memory other = tree.neighbors[0];
+        if (other.exists) idx = readInto(other, idx, arrayA); // left
+        // center
+
+        // assembly does this:
+
+        //arrayA[idx++] = tree.key;
+
+        assembly {
+            // assumes arrays come in allocated BUT have their length initialized to 0 so will know how many added
+            mstore(arrayA, add(mload(arrayA), 1))
+
+            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
+            idx := add(idx, 1)
+        }
+        other = tree.neighbors[1];
+        if (other.exists) idx = readInto(other, idx, arrayA); // right
+        return idx;
     }
 
     function readInto(Tree memory tree, uint256 idx, uint256[] memory arrayA, bytes[] memory arrayB)
@@ -147,9 +174,13 @@ library MemoryMappings {
         //arrayB[idx++] = tree.payload;
 
         assembly {
-            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x20)))
+            // assumes arrays come in allocated BUT have their length initialized to 0 so will know how many added
+            mstore(arrayA, add(mload(arrayA), 1))
+            mstore(arrayB, add(mload(arrayB), 1))
 
-            mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
+            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
+
+            mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x60)))
             idx := add(idx, 1)
         }
         other = tree.neighbors[1];
@@ -172,9 +203,13 @@ library MemoryMappings {
         //arrayB[idx++] = abi.decode(tree.payload, (uint256));
 
         assembly {
-            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x20)))
+            // assumes arrays come in allocated BUT have their length initialized to 0 so will know how many added
+            mstore(arrayA, add(mload(arrayA), 1))
+            mstore(arrayB, add(mload(arrayB), 1))
 
-            mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(mload(add(tree, 0x40)), 0x20)))
+            mstore(add(arrayA, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
+
+            mstore(add(arrayB, add(0x20, mul(idx, 0x20))), mload(add(mload(add(tree, 0x60)), 0x20)))
             idx := add(idx, 1)
         }
         other = tree.neighbors[1];
