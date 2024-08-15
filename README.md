@@ -4,35 +4,6 @@ You can define and use mappings in memory in solidity using this library. Don't 
 
 Read/write to the memory map is cheaper in gas than the analogue in storage. In best case read/write are O(log n).
 
-### test printout
-
-```
-Logs:
-  295020 gas total
-  2950 gas per add
-  38213 readInto gas
-  382 readInto per elt
-  ----
-  ----
-  413395 get gas total
-  4133 get gas avg
-  7568 gas max
-  562 gas min
-  21865 ignorant linear search gas
-
-[PASS] test_benchmark_words() (gas: 1124416)
-Logs:
-  306230 gas total
-  3062 gas per add
-  39113 readInto gas
-  391 readInto per elt
-  350131 get gas total
-  3501 get gas avg
-  6421 gas max
-  515 gas min
-  21823 ignorant linear search gas
-```
-
 Not audited. Use at your own risk.
 
 ### example
