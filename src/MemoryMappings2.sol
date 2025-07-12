@@ -87,7 +87,7 @@ library MemoryMappings2 {
 
         while(true) {
             if (_tree.sortingKey == sortingKey) {
-                if (overwrite) {
+                if (overwrite || _tree.value == bytes32(0)) {
                     _tree.value = value;
                 }
                 return overwrite;

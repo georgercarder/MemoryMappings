@@ -55,9 +55,10 @@ contract MemoryMapsTest is Test {
            /*
             assertEq(bytes32(arrB[i]), value);
         }
+       */
 
         bool ok;
-        bytes memory value;
+        bytes32 valuePtr;
         gasTotal = 0;
         uint256 max;
         uint256 min = type(uint256).max;
@@ -67,7 +68,7 @@ contract MemoryMapsTest is Test {
             bytes32 key = keccak256(abi.encode(i));
             bytes32 expectedValue = keccak256(abi.encode(key));
             gasBefore = gasleft();
-            (ok, value) = MemoryMappings.get(mm, key);
+            (ok, valuePtr) = MemoryMappings2.get(mm, key);
             gasUsed = gasBefore - gasleft();
             //console.log(uint256(key), uint256(expectedValue));
             //console.log(uint256(key), abi.decode(value, (uint256)));
@@ -78,7 +79,7 @@ contract MemoryMapsTest is Test {
             //console.log("debug 1");
             if (gasUsed > max) max = gasUsed;
             if (gasUsed < min) min = gasUsed;
-            assertEq(abi.decode(value, (bytes32)), expectedValue);
+            assertEq(valuePtr, expectedValue);
         }
         //console.log("----");
         console.log("%d get gas total", gasTotal);
@@ -86,6 +87,7 @@ contract MemoryMapsTest is Test {
         console.log("%d gas max", max);
         console.log("%d gas min", min);
 
+        /*
         bytes32[] memory keys = new bytes32[](bound);
         bytes32[] memory values = new bytes32[](bound);
         for (uint256 i; i < bound; ++i) {
