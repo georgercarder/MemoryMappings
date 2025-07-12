@@ -28,6 +28,12 @@ contract MemoryMapsTest is Test {
         console.log("%d gas total", gasTotal);
         console.log("%d gas per add", gasTotal / bound);
 
+        {
+            bytes32 key = bytes32(uint256(42069));
+            (bool ok, bytes32 value) = MemoryMappings.get(mm, key); // double checking getting nonexistant key will be !ok
+            assertEq(ok, false);
+        }
+
         gasBefore = gasleft();
         (bytes32[] memory keys, bytes32[] memory values) = MemoryMappings.dump(mm);
         gasTotal = gasBefore - gasleft();
