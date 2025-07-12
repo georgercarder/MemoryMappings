@@ -100,6 +100,7 @@ library MemoryMappings {
     }
 
     function dump(MemoryMapping memory mm) internal pure returns (bytes32[] memory keys, bytes32[] memory values) {
+        if (mm.totalKeys < 1) return (keys, values);
         keys = new bytes32[](mm.totalKeys);
         values = new bytes32[](mm.totalKeys);
         assembly {
@@ -110,6 +111,7 @@ library MemoryMappings {
     }
 
     function dumpKeys(MemoryMapping memory mm) internal pure returns (bytes32[] memory keys) {
+        if (mm.totalKeys < 1) return keys;
         keys = new bytes32[](mm.totalKeys);
         assembly {
             mstore(keys, 0)
@@ -118,6 +120,7 @@ library MemoryMappings {
     }
 
     function dumpValues(MemoryMapping memory mm) internal pure returns (bytes32[] memory values) {
+        if (mm.totalKeys < 1) return values;
         values = new bytes32[](mm.totalKeys);
         assembly {
             mstore(values, 0)
