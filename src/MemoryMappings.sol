@@ -102,17 +102,27 @@ library MemoryMappings {
     function dump(MemoryMapping memory mm) internal pure returns (bytes32[] memory keys, bytes32[] memory values) {
         keys = new bytes32[](mm.totalKeys);
         values = new bytes32[](mm.totalKeys);
-        _dump(mm.tree, 0, keys, values);
+        assembly {
+            mstore(keys, 0)
+            mstore(values, 0)
+        }
+        _dump(mm.tree, keys, values);
     }
 
     function dumpKeys(MemoryMapping memory mm) internal pure returns (bytes32[] memory keys) {
         keys = new bytes32[](mm.totalKeys);
-        _dumpKeys(mm.tree, 0, keys);
+        assembly {
+            mstore(keys, 0)
+        }
+        _dumpKeys(mm.tree, keys);
     }
 
     function dumpValues(MemoryMapping memory mm) internal pure returns (bytes32[] memory values) {
         values = new bytes32[](mm.totalKeys);
-        _dumpValues(mm.tree, 0, values);
+        assembly {
+            mstore(values, 0)
+        }
+        _dumpValues(mm.tree, values);
     }
 
     function _add(Tree memory tree, bool overwrite, bytes32 sortingKey, bytes32 key, bytes32 value)
@@ -172,78 +182,73 @@ library MemoryMappings {
         }
     }
 
-    function _dump(Tree memory tree, uint256 idx, bytes32[] memory keys, bytes32[] memory values)
-        private
-        pure
-        returns (uint256)
-    {
+    function _dump(Tree memory tree, bytes32[] memory keys, bytes32[] memory values) private pure {
         Tree memory other = tree.children[0];
-        if (other.exists) idx = _dump(other, idx, keys, values); // left
+        if (other.exists) _dump(other, keys, values); // left
         // center
 
         // assembly does this:
 
+        //uint256 idx = keys.length;
         //keys[idx] = tree.key;
         //values[idx++] = tree.value;
 
         assembly {
             // assumes arrays come in allocated BUT have their length initialized to 0 so will know how many added
-            mstore(keys, add(mload(keys), 1))
-            mstore(values, add(mload(values), 1))
+            let idx := mload(keys)
+            mstore(keys, add(idx, 1))
+            mstore(values, add(idx, 1))
 
             mstore(add(keys, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
 
             mstore(add(values, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x60)))
-            idx := add(idx, 1)
         }
 
         other = tree.children[1];
-        if (other.exists) idx = _dump(other, idx, keys, values); // right
-        return idx;
+        if (other.exists) _dump(other, keys, values); // right
     }
 
-    function _dumpKeys(Tree memory tree, uint256 idx, bytes32[] memory keys) private pure returns (uint256) {
+    function _dumpKeys(Tree memory tree, bytes32[] memory keys) private pure {
         Tree memory other = tree.children[0];
-        if (other.exists) idx = _dumpKeys(other, idx, keys); // left
+        if (other.exists) _dumpKeys(other, keys); // left
         // center
 
         // assembly does this:
 
+        //uint256 idx = keys.length;
         //keys[idx] = tree.key;
 
         assembly {
             // assumes arrays come in allocated BUT have their length initialized to 0 so will know how many added
-            mstore(keys, add(mload(keys), 1))
+            let idx := mload(keys)
+            mstore(keys, add(idx, 1))
 
             mstore(add(keys, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
-
-            idx := add(idx, 1)
         }
 
         other = tree.children[1];
-        if (other.exists) idx = _dumpKeys(other, idx, keys); // right
-        return idx;
+        if (other.exists) _dumpKeys(other, keys); // right
     }
 
-    function _dumpValues(Tree memory tree, uint256 idx, bytes32[] memory values) private pure returns (uint256) {
+    function _dumpValues(Tree memory tree, bytes32[] memory values) private pure {
         Tree memory other = tree.children[0];
-        if (other.exists) idx = _dumpValues(other, idx, values); // left
+        if (other.exists) _dumpValues(other, values); // left
         // center
 
         // assembly does this:
 
+        //uint256 idx = values.length;
         //values[idx++] = tree.value;
 
         assembly {
             // assumes arrays come in allocated BUT have their length initialized to 0 so will know how many added
-            mstore(values, add(mload(values), 1))
+            let idx := mload(values)
+            mstore(values, add(idx, 1))
 
             mstore(add(values, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x60)))
-            idx := add(idx, 1)
         }
 
         other = tree.children[1];
-        if (other.exists) idx = _dumpValues(other, idx, values); // right
-        return idx;
+        if (other.exists) _dumpValues(other, values); // right
     }
 }
