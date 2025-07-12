@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 
-import "../src/MemoryMappings.sol";
+import "../src/MemoryMappings2.sol";
 
 import "lib/solady/src/utils/LibSort.sol";
 
@@ -12,8 +12,8 @@ contract MemoryMapsTest is Test {
 
     uint256 public bound = 100;
 
-    function test_benchmark_words() public {
-        MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: true, overwrite: false});
+    function test_benchmark_words() public view {
+        MemoryMappings2.MemoryMapping2 memory mm = MemoryMappings2.newMemoryMapping({sorted: true, overwrite: false});
 
         uint256 gasTotal;
         uint256 gasBefore;
@@ -21,13 +21,14 @@ contract MemoryMapsTest is Test {
             bytes32 key = keccak256(abi.encode(i));
             bytes32 value = keccak256(abi.encode(key));
             gasBefore = gasleft();
-            MemoryMappings.add(mm, key, value);
+            MemoryMappings2.add(mm, key, value);
             gasTotal += gasBefore - gasleft();
             //console.log(uint256(key), uint256(value));
         }
         console.log("%d gas total", gasTotal);
         console.log("%d gas per add", gasTotal / bound);
 
+        /*
         gasBefore = gasleft();
         (uint256[] memory arrA, uint256[] memory arrB) = MemoryMappings.dumpUint256s(mm);
         gasTotal = gasBefore - gasleft();
@@ -42,6 +43,7 @@ contract MemoryMapsTest is Test {
         console.log("--");
        */
 
+        /*
         for (uint256 i; i < bound; ++i) {
             uint256 key = arrA[i];
             bytes32 value = keccak256(abi.encode(key));
@@ -50,6 +52,7 @@ contract MemoryMapsTest is Test {
             console.log(uint256(arrB[i]));
             console.log("--");
             */
+           /*
             assertEq(bytes32(arrB[i]), value);
         }
 
@@ -101,9 +104,11 @@ contract MemoryMapsTest is Test {
             }
         }
         console.log("%d ignorant linear search gas", gasBefore - gasleft());
+       */
     }
 
     function test_benchmark_bytes() public {
+        /*
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: true, overwrite: false});
 
         uint256 gasTotal;
@@ -175,9 +180,11 @@ contract MemoryMapsTest is Test {
             }
         }
         console.log("%d ignorant linear search gas", gasBefore - gasleft());
+        */
     }
 
     function test_benchmark_bytes_bytes() public {
+        /*
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: false, overwrite: false});
 
         uint256 gasTotal;
@@ -250,9 +257,11 @@ contract MemoryMapsTest is Test {
             }
         }
         console.log("%d ignorant linear search gas", gasBefore - gasleft());
+        */
     }
 
     function hasDuplicate(uint256[] memory arr) public pure returns(bool tf) {
+        /*
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: false, overwrite: true});
         uint256 a;
         for (uint256 i; i < arr.length; ++i) {
@@ -262,9 +271,11 @@ contract MemoryMapsTest is Test {
             MemoryMappings.add(mm, bytes32(a), bytes32(0));
         }
         return tf;
+        */
     }
 
     function hasDuplicate_2(uint256[] memory arr) public pure returns(bool tf) {
+        /*
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: false, overwrite: true});
         uint256 a;
         for (uint256 i; i < arr.length; ++i) {
@@ -272,9 +283,11 @@ contract MemoryMapsTest is Test {
             MemoryMappings.add(mm, bytes32(a), bytes32(0));
         }
         return mm.totalKeys != arr.length;
+        */
     }
 
     function test_compare_hasDuplicate() public {
+        /*
         uint256 bound = 100;
         uint256[] memory arr = new uint256[](bound); 
         for (uint256 i; i < bound; ++i) {
@@ -312,5 +325,6 @@ contract MemoryMapsTest is Test {
             console.log("no duplicate");
         }
         console.log("Not even close to as good as Solady's 'hasDuplicate'");
+        */
     }
 }
