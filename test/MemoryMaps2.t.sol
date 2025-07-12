@@ -28,34 +28,26 @@ contract MemoryMapsTest is Test {
         console.log("%d gas total", gasTotal);
         console.log("%d gas per add", gasTotal / bound);
 
-        /*
+        // FIXME why is dump not orking??
         gasBefore = gasleft();
-        (uint256[] memory arrA, uint256[] memory arrB) = MemoryMappings.dumpUint256s(mm);
+        (bytes32[] memory keys, bytes32[] memory values) = MemoryMappings2.dump(mm);
         gasTotal = gasBefore - gasleft();
         console.log("%d dump gas", gasTotal);
         console.log("%d dump per elt", gasTotal / bound);
 
-        /*
-        console.log("--");
-        for (uint256 i; i < bound; ++i) {
-            console.log(uint256(arrA[i]), uint256(arrB[i]));
-        }
-        console.log("--");
-       */
+        console.log("%d %d totalKeys bound", mm.totalKeys, bound);
 
-        /*
         for (uint256 i; i < bound; ++i) {
-            uint256 key = arrA[i];
-            bytes32 value = keccak256(abi.encode(key));
+            uint256 key = uint256(keys[i]);
+            //console.log("%d key", key);
+            bytes32 expected = keccak256(abi.encode(key));
             /*
-            console.log(uint256(value));
-            console.log(uint256(arrB[i]));
+            console.log(uint256(expected));
+            console.log(uint256(values[i]));
             console.log("--");
             */
-           /*
-            assertEq(bytes32(arrB[i]), value);
+            assertEq(values[i], expected);
         }
-       */
 
         bool ok;
         bytes32 valuePtr;
@@ -79,6 +71,7 @@ contract MemoryMapsTest is Test {
             //console.log("debug 1");
             if (gasUsed > max) max = gasUsed;
             if (gasUsed < min) min = gasUsed;
+            //console.log("%d valuePtr", uint256(valuePtr));
             assertEq(valuePtr, expectedValue);
         }
         //console.log("----");

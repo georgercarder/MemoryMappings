@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: VPL - VIRAL PUBLIC LICENSE
 pragma solidity ^0.8.25;
 
-import "forge-std/console.sol"; // FIXME
-
 library MemoryMappings2 {
 
     struct MemoryMapping2 {
@@ -14,6 +12,7 @@ library MemoryMappings2 {
     }
 
     struct Tree2 {
+        bool exists;
         bytes32 sortingKey; 
         bytes32 key;
         bytes32 value;
@@ -40,8 +39,8 @@ library MemoryMappings2 {
         }
         if (mm.totalKeys < 1) { // bootstrapping
             ++mm.totalKeys; 
-            Tree2[] memory empty;
-            mm.tree = Tree2(sortingKey, key, valuePtr, empty);
+            Tree2[] memory children = new Tree2[](2);
+            mm.tree = Tree2(true, sortingKey, key, valuePtr, children);
             return;
         }
         bool newValue = _add(mm.tree, mm.overwrite, sortingKey, key, valuePtr);
@@ -59,8 +58,8 @@ library MemoryMappings2 {
         }
         if (mm.totalKeys < 1) { // bootstrapping
             ++mm.totalKeys; 
-            Tree2[] memory empty;
-            mm.tree = Tree2(sortingKey, key, value, empty);
+            Tree2[] memory children = new Tree2[](2);
+            mm.tree = Tree2(true, sortingKey, key, value, children);
             return;
         }
         bool newValue = _add(mm.tree, mm.overwrite, sortingKey, key, value);
@@ -78,8 +77,10 @@ library MemoryMappings2 {
         return _get(mm.tree, sortingKey);
     }
 
-    function dump(MemoryMapping2 memory mm) internal pure returns(bytes32[] memory keys, bytes32[] memory values) {
-        return _dump(mm.tree, mm.totalKeys); 
+    function dump(MemoryMapping2 memory mm) internal view returns(bytes32[] memory keys, bytes32[] memory values) {
+        keys = new bytes32[](mm.totalKeys);
+        values = new bytes32[](mm.totalKeys);
+        _dump(mm.tree, 0, keys, values); 
     }
 
     function _add(Tree2 memory tree, bool overwrite, bytes32 sortingKey, bytes32 key, bytes32 value) private view returns(bool newValue) {
@@ -87,16 +88,15 @@ library MemoryMappings2 {
 
         while(true) {
             if (_tree.sortingKey == sortingKey) {
-                if (overwrite || _tree.value == bytes32(0)) {
+                newValue = !_tree.exists;
+                if (overwrite || newValue) {
+                    _tree.exists = true;
                     _tree.value = value;
+                    _tree.children = new Tree2[](2); 
+                    return newValue;
                 }
-                return overwrite;
+                return newValue;
             } 
-
-            bool isNewNode = _tree.children.length < 1;
-            if (isNewNode) {
-                _tree.children = new Tree2[](2); 
-            }
 
             if (sortingKey < _tree.sortingKey) { // FIXME could make this branchless
                 _tree = _tree.children[0]; 
@@ -104,7 +104,7 @@ library MemoryMappings2 {
                 _tree = _tree.children[1]; 
             }
 
-            if (isNewNode) {
+            if (!_tree.exists) {
                 _tree.sortingKey = sortingKey;
                 _tree.key = key;
             }
@@ -120,8 +120,8 @@ library MemoryMappings2 {
                 return (ok, value);
             } 
 
-            bool isNewNode = _tree.children.length < 1;
-            if (isNewNode) {
+            //bool isNewNode = _tree.children.length < 1;
+            if (_tree.children.length < 1) {
                 // ok = false;
                 return (ok, value);
             }
@@ -134,24 +134,30 @@ library MemoryMappings2 {
         }
     }
 
-    function _dump(Tree2 memory tree, uint256 totalKeys) private pure returns(bytes32[] memory keys, bytes32[] memory values) {
-        keys = new bytes32[](totalKeys);
-        values = new bytes32[](totalKeys);
-        uint256 idx;
+    function _dump(Tree2 memory tree, uint256 idx, bytes32[] memory keys, bytes32[] memory values) private view returns(uint256) {
+        Tree2 memory other = tree.children[0];
+        if (other.exists) idx = _dump(other, idx, keys, values); // left
+        // center
 
-        /*
-        Tree2 memory _tree = tree; 
-        while(idx < totalKeys) {
-            keys[idx] = _tree.key;
-            values[idx++] = _tree.value;
+        // assembly does this:
 
+        //keys[idx] = tree.key;
+        //values[idx++] = tree.value;
 
-            if (sortingKey < _tree.sortingKey) { // FIXME could make this branchless
-                _tree = _tree.children[0]; 
-            } else {
-                _tree = _tree.children[1]; 
-            }
+        // FIXME must update assembly
+        assembly {
+            // assumes arrays come in allocated BUT have their length initialized to 0 so will know how many added
+            mstore(keys, add(mload(keys), 1))
+            mstore(values, add(mload(values), 1))
+
+            mstore(add(keys, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x40)))
+
+            mstore(add(values, add(0x20, mul(idx, 0x20))), mload(add(tree, 0x60)))
+            idx := add(idx, 1)
         }
-        */
+
+        other = tree.children[1];
+        if (other.exists) idx = _dump(other, idx, keys, values); // right
+        return idx;
     }
 }
