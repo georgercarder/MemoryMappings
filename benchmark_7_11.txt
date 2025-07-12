@@ -1,0 +1,57 @@
+No files changed, compilation skipped
+
+Ran 4 tests for test/MemoryMaps.t.sol:MemoryMapsTest
+[PASS] test_benchmark_bytes() (gas: 1996121)
+Logs:
+  347701 gas total
+  3477 gas per add
+  47343 dumpBytes gas
+  473 dumpBytes per elt
+  ----
+  ----
+  486512 get gas total
+  4865 get gas avg
+  9021 gas max
+  632 gas min
+  21881 ignorant linear search gas
+
+[PASS] test_benchmark_bytes_bytes() (gas: 2124706)
+Logs:
+  318370 gas total
+  3183 gas per add
+  52166 dumpBothBytes gas
+  521 dumpBothBytes per elt
+  ----
+  ----
+  424842 get gas total
+  4248 get gas avg
+  8212 gas max
+  797 gas min
+  33218 ignorant linear search gas
+
+[PASS] test_benchmark_words() (gas: 1233391)
+Logs:
+  362985 gas total
+  3629 gas per add
+  43544 dump gas
+  435 dump per elt
+  396442 get gas total
+  3964 get gas avg
+  7408 gas max
+  554 gas min
+  21832 ignorant linear search gas
+
+[PASS] test_compare_hasDuplicate() (gas: 501102)
+Logs:
+  4632 solady hasDup gas
+  has duplicate
+  151459 MemoryMappings hasDup gas
+  has duplicate
+  Not even close to as good as Solady's 'hasDuplicate'
+  303375 MemoryMappings hasDup2 gas
+  has duplicate
+  Not even close to as good as Solady's 'hasDuplicate'
+
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 10.95ms (30.80ms CPU time)
+
+Ran 1 test suite in 11.55ms (10.95ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)
