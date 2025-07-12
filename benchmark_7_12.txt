@@ -1,0 +1,46 @@
+No files changed, compilation skipped
+
+Ran 3 tests for test/MemoryMaps.t.sol:MemoryMapsTest
+[PASS] test_benchmark_bytes() (gas: 1187230)
+Logs:
+  220478 gas total
+  2204 gas per add
+  38283 dumpBytes gas
+  382 dumpBytes per elt
+  ----
+  ----
+  153773 get gas total
+  1537 get gas avg
+  2497 gas max
+  311 gas min
+  21740 ignorant linear search gas
+
+[PASS] test_benchmark_bytes_bytes() (gas: 1564146)
+Logs:
+  263895 gas total
+  2638 gas per add
+  39201 dumpBothBytes gas
+  392 dumpBothBytes per elt
+  ----
+  ----
+  196124 get gas total
+  1961 get gas avg
+  3275 gas max
+  860 gas min
+  33188 ignorant linear search gas
+
+[PASS] test_benchmark_words() (gas: 800073)
+Logs:
+  214497 gas total
+  2144 gas per add
+  37790 dump gas
+  377 dump per elt
+  152673 get gas total
+  1526 get gas avg
+  2486 gas max
+  300 gas min
+  21783 ignorant linear search gas
+
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 16.32ms (36.05ms CPU time)
+
+Ran 1 test suite in 17.33ms (16.32ms CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)
