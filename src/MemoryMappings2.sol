@@ -31,28 +31,17 @@ library MemoryMappings2 {
                 sortingKey := keccak256(0x0, 0x20)
             }
         }
-        bytes32 valuePtr;
-        assembly {
-            valuePtr := value
-        }
-        if (mm.totalKeys < 1) {
-            // bootstrapping
-            ++mm.totalKeys;
-            Tree2[] memory children = new Tree2[](2);
-            mm.tree = Tree2(true, sortingKey, key, valuePtr, children);
-            return;
-        }
-        bool newValue = _add(mm.tree, mm.overwrite, sortingKey, key, valuePtr);
-        if (newValue) ++mm.totalKeys;
+        _add(mm, sortingKey, key, value);
     }
 
     // note that won't be sorted if keys are bytes
     function add(MemoryMapping2 memory mm, bytes memory key, bytes memory value) internal pure {
-        bytes32 keyHash;
+        bytes32 keyHash = keccak256(abi.encode(key));
+        bytes32 keyPtr;
         assembly {
-            keyHash := keccak256(key, mload(key))
+            keyPtr := key
         }
-        add(mm, keyHash, value);
+        _add(mm, keyHash, keyPtr, value);
     }
 
     function add(MemoryMapping2 memory mm, bytes32 key, bytes32 value) internal pure {
@@ -74,6 +63,22 @@ library MemoryMappings2 {
         if (newValue) ++mm.totalKeys;
     }
 
+    function _add(MemoryMapping2 memory mm, bytes32 sortingKey, bytes32 key, bytes memory value) private pure {
+        bytes32 valuePtr;
+        assembly {
+            valuePtr := value
+        }
+        if (mm.totalKeys < 1) {
+            // bootstrapping
+            ++mm.totalKeys;
+            Tree2[] memory children = new Tree2[](2);
+            mm.tree = Tree2(true, sortingKey, key, valuePtr, children);
+            return;
+        }
+        bool newValue = _add(mm.tree, mm.overwrite, sortingKey, key, valuePtr);
+        if (newValue) ++mm.totalKeys;
+    }
+
     function get(MemoryMapping2 memory mm, bytes32 key) internal pure returns (bool ok, bytes32 value) {
         bytes32 sortingKey = key;
         if (!mm.sorted) {
@@ -82,15 +87,16 @@ library MemoryMappings2 {
                 sortingKey := keccak256(0x0, 0x20)
             }
         }
-        return _get(mm.tree, sortingKey);
+        return _get(mm, sortingKey);
     }
 
     function get(MemoryMapping2 memory mm, bytes memory key) internal pure returns (bool ok, bytes32 value) {
-        bytes32 keyHash;
-        assembly {
-            keyHash := keccak256(key, mload(key))
-        }
-        return get(mm, keyHash);
+        bytes32 keyHash = keccak256(abi.encode(key)); // FIXME need more efficient hash
+        return _get(mm, keyHash);
+    }
+
+    function _get(MemoryMapping2 memory mm, bytes32 sortingKey) private pure returns(bool ok, bytes32 value) {
+        return _get(mm.tree, sortingKey);
     }
 
     function dump(MemoryMapping2 memory mm) internal pure returns (bytes32[] memory keys, bytes32[] memory values) {
