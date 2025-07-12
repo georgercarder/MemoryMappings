@@ -255,7 +255,7 @@ contract MemoryMapsTest is Test {
         */
     }
 
-    function hasDuplicate(uint256[] memory arr) public pure returns(bool tf) {
+    function hasDuplicate(uint256[] memory arr) public pure returns (bool tf) {
         /*
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: false, overwrite: true});
         uint256 a;
@@ -269,7 +269,7 @@ contract MemoryMapsTest is Test {
         */
     }
 
-    function hasDuplicate_2(uint256[] memory arr) public pure returns(bool tf) {
+    function hasDuplicate_2(uint256[] memory arr) public pure returns (bool tf) {
         /*
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: false, overwrite: true});
         uint256 a;
