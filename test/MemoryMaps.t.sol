@@ -5,12 +5,14 @@ import {Test, console} from "forge-std/Test.sol";
 
 import "../src/MemoryMappings.sol";
 
+import "lib/solady/src/utils/LibSort.sol";
+
 contract MemoryMapsTest is Test {
     function setUp() public {}
 
     uint256 public bound = 100;
 
-    function test_benchmark_words() public {
+    function test_benchmark_words() public view {
         MemoryMappings.MemoryMapping memory mm = MemoryMappings.newMemoryMapping({sorted: true, overwrite: false});
 
         uint256 gasTotal;
@@ -27,32 +29,25 @@ contract MemoryMapsTest is Test {
         console.log("%d gas per add", gasTotal / bound);
 
         gasBefore = gasleft();
-        (uint256[] memory arrA, uint256[] memory arrB) = MemoryMappings.dumpUint256s(mm);
+        (bytes32[] memory keys, bytes32[] memory values) = MemoryMappings.dump(mm);
         gasTotal = gasBefore - gasleft();
         console.log("%d dump gas", gasTotal);
         console.log("%d dump per elt", gasTotal / bound);
 
-        /*
-        console.log("--");
         for (uint256 i; i < bound; ++i) {
-            console.log(uint256(arrA[i]), uint256(arrB[i]));
-        }
-        console.log("--");
-       */
-
-        for (uint256 i; i < bound; ++i) {
-            uint256 key = arrA[i];
-            bytes32 value = keccak256(abi.encode(key));
+            uint256 key = uint256(keys[i]);
+            //console.log("%d key", key);
+            bytes32 expected = keccak256(abi.encode(key));
             /*
-            console.log(uint256(value));
-            console.log(uint256(arrB[i]));
+            console.log(uint256(expected));
+            console.log(uint256(values[i]));
             console.log("--");
             */
-            assertEq(bytes32(arrB[i]), value);
+            assertEq(values[i], expected);
         }
 
         bool ok;
-        bytes memory value;
+        bytes32 valuePtr;
         gasTotal = 0;
         uint256 max;
         uint256 min = type(uint256).max;
@@ -62,7 +57,7 @@ contract MemoryMapsTest is Test {
             bytes32 key = keccak256(abi.encode(i));
             bytes32 expectedValue = keccak256(abi.encode(key));
             gasBefore = gasleft();
-            (ok, value) = MemoryMappings.get(mm, key);
+            (ok, valuePtr) = MemoryMappings.get(mm, key);
             gasUsed = gasBefore - gasleft();
             //console.log(uint256(key), uint256(expectedValue));
             //console.log(uint256(key), abi.decode(value, (uint256)));
@@ -73,7 +68,8 @@ contract MemoryMapsTest is Test {
             //console.log("debug 1");
             if (gasUsed > max) max = gasUsed;
             if (gasUsed < min) min = gasUsed;
-            assertEq(abi.decode(value, (bytes32)), expectedValue);
+            //console.log("%d valuePtr", uint256(valuePtr));
+            assertEq(valuePtr, expectedValue);
         }
         //console.log("----");
         console.log("%d get gas total", gasTotal);
@@ -81,21 +77,21 @@ contract MemoryMapsTest is Test {
         console.log("%d gas max", max);
         console.log("%d gas min", min);
 
-        bytes32[] memory keys = new bytes32[](bound);
-        bytes32[] memory values = new bytes32[](bound);
+        bytes32[] memory _keys = new bytes32[](bound);
+        bytes32[] memory _values = new bytes32[](bound);
         for (uint256 i; i < bound; ++i) {
             bytes32 key = keccak256(abi.encode(i));
-            keys[i] = key;
+            _keys[i] = key;
             bytes32 value = keccak256(abi.encode(key));
-            values[i] = value;
+            _values[i] = value;
         }
         // worst case linear search
         bytes32 searchTerm = keccak256(abi.encode(bound - 1));
         gasBefore = gasleft();
         bytes32 found;
         for (uint256 i; i < bound; ++i) {
-            if (keys[i] == searchTerm) {
-                found = values[i];
+            if (_keys[i] == searchTerm) {
+                found = _values[i];
             }
         }
         console.log("%d ignorant linear search gas", gasBefore - gasleft());
@@ -118,18 +114,25 @@ contract MemoryMapsTest is Test {
         console.log("%d gas per add", gasTotal / bound);
 
         gasBefore = gasleft();
-        (uint256[] memory arrA, bytes[] memory arrB) = MemoryMappings.dumpBytes(mm);
+        (bytes32[] memory keys, bytes32[] memory valuePtrs) = MemoryMappings.dump(mm);
+        bytes[] memory values;
+        assembly {
+            values := valuePtrs
+        }
         gasTotal = gasBefore - gasleft();
         console.log("%d dumpBytes gas", gasTotal);
         console.log("%d dumpBytes per elt", gasTotal / bound);
 
         for (uint256 i; i < bound; ++i) {
-            uint256 key = arrA[i];
-            (bool ok, bytes memory expectedValue) = MemoryMappings.get(mm, bytes32(key));
-            assertEq(keccak256(arrB[i]), keccak256(expectedValue));
+            uint256 key = uint256(keys[i]);
+            (bool ok, bytes32 expectedValuePtr) = MemoryMappings.get(mm, bytes32(key));
+            bytes memory expectedValue;
+            assembly {
+                expectedValue := expectedValuePtr
+            }
+            assertEq(keccak256(values[i]), keccak256(expectedValue));
         }
 
-        bool ok;
         bytes memory value;
         gasTotal = 0;
         uint256 max;
@@ -140,7 +143,10 @@ contract MemoryMapsTest is Test {
             bytes32 key = keccak256(abi.encode(i));
             bytes memory expectedValue = bytes.concat(bytes("hello_cat??"), abi.encode(keccak256(abi.encode(i))));
             gasBefore = gasleft();
-            (ok, value) = MemoryMappings.get(mm, key);
+            (bool ok, bytes32 valuePtr) = MemoryMappings.get(mm, key);
+            assembly {
+                value := valuePtr
+            }
             gasUsed = gasBefore - gasleft();
             //console.log("%d gasUsed", gasUsed);
             gasTotal += gasUsed;
@@ -155,21 +161,21 @@ contract MemoryMapsTest is Test {
         console.log("%d gas max", max);
         console.log("%d gas min", min);
 
-        bytes32[] memory keys = new bytes32[](bound);
-        bytes[] memory values = new bytes[](bound);
+        bytes32[] memory _keys = new bytes32[](bound);
+        bytes[] memory _values = new bytes[](bound);
         for (uint256 i; i < bound; ++i) {
             bytes32 key = keccak256(abi.encode(i));
             keys[i] = key;
-            bytes memory value = bytes.concat(bytes("hello_"), abi.encode(keccak256("cat??")), abi.encode(i));
-            values[i] = value;
+            bytes memory _value = bytes.concat(bytes("hello_"), abi.encode(keccak256("cat??")), abi.encode(i));
+            _values[i] = value;
         }
         // worst case linear search
         bytes32 searchTerm = keccak256(abi.encode(bound - 1));
         gasBefore = gasleft();
         bytes memory found;
         for (uint256 i; i < bound; ++i) {
-            if (keys[i] == searchTerm) {
-                found = values[i];
+            if (_keys[i] == searchTerm) {
+                found = _values[i];
             }
         }
         console.log("%d ignorant linear search gas", gasBefore - gasleft());
@@ -185,6 +191,7 @@ contract MemoryMapsTest is Test {
         for (uint256 i; i < bound; ++i) {
             key = bytes.concat(bytes("hello_catKEY??"), abi.encode(keccak256(abi.encode(i))));
             value = bytes.concat(bytes("hello_cat??"), abi.encode(keccak256(abi.encode(i))));
+
             gasBefore = gasleft();
             MemoryMappings.add(mm, key, value);
             gasTotal += gasBefore - gasleft();
@@ -193,19 +200,32 @@ contract MemoryMapsTest is Test {
         console.log("%d gas total", gasTotal);
         console.log("%d gas per add", gasTotal / bound);
 
-        gasBefore = gasleft();
-        (bytes[] memory arrA, bytes[] memory arrB) = MemoryMappings.dumpBothBytes(mm);
-        gasTotal = gasBefore - gasleft();
-        console.log("%d dumpBothBytes gas", gasTotal);
-        console.log("%d dumpBothBytes per elt", gasTotal / bound);
+        {
+            gasBefore = gasleft();
+            (bytes32[] memory keyPtrs, bytes32[] memory valuePtrs) = MemoryMappings.dump(mm);
+            bytes[] memory keys;
+            bytes[] memory values;
+            assembly {
+                keys := keyPtrs
+                values := valuePtrs
+            }
+            gasTotal = gasBefore - gasleft();
+            console.log("%d dumpBothBytes gas", gasTotal);
+            console.log("%d dumpBothBytes per elt", gasTotal / bound);
 
-        for (uint256 i; i < bound; ++i) {
-            bytes memory key = arrA[i];
-            (bool ok, bytes memory expectedValue) = MemoryMappings.get(mm, key);
-            assertEq(keccak256(arrB[i]), keccak256(expectedValue));
+            for (uint256 i; i < bound; ++i) {
+                bytes memory key = keys[i];
+                //console.log(string(key));
+                //console.log(string(values[i]));
+                (bool ok, bytes32 expectedValuePtr) = MemoryMappings.get(mm, key);
+                bytes memory expectedValue;
+                assembly {
+                    expectedValue := expectedValuePtr
+                }
+                assertEq(keccak256(values[i]), keccak256(expectedValue));
+            }
         }
 
-        bool ok;
         gasTotal = 0;
         uint256 max;
         uint256 min = type(uint256).max;
@@ -215,7 +235,11 @@ contract MemoryMapsTest is Test {
             bytes memory key = bytes.concat(bytes("hello_catKEY??"), abi.encode(keccak256(abi.encode(i))));
             bytes memory expectedValue = bytes.concat(bytes("hello_cat??"), abi.encode(keccak256(abi.encode(i))));
             gasBefore = gasleft();
-            (ok, value) = MemoryMappings.get(mm, key);
+            (bool ok, bytes32 valuePtr) = MemoryMappings.get(mm, key);
+            bytes memory value;
+            assembly {
+                value := valuePtr
+            }
             gasUsed = gasBefore - gasleft();
             //console.log("%d gasUsed", gasUsed);
             gasTotal += gasUsed;
@@ -230,21 +254,21 @@ contract MemoryMapsTest is Test {
         console.log("%d gas max", max);
         console.log("%d gas min", min);
 
-        bytes[] memory keys = new bytes[](bound);
-        bytes[] memory values = new bytes[](bound);
+        bytes[] memory _keys = new bytes[](bound);
+        bytes[] memory _values = new bytes[](bound);
         for (uint256 i; i < bound; ++i) {
             bytes memory key = bytes.concat(bytes("hello_catKEY??"), abi.encode(keccak256(abi.encode(i))));
-            keys[i] = key;
+            _keys[i] = key;
             bytes memory value = bytes.concat(bytes("hello_"), abi.encode(keccak256("cat??")), abi.encode(i));
-            values[i] = value;
+            _values[i] = value;
         }
         // worst case linear search
         bytes memory searchTerm = bytes.concat(bytes("hello_catKEY??"), abi.encode(keccak256(abi.encode(bound - 1))));
         gasBefore = gasleft();
         bytes memory found;
         for (uint256 i; i < bound; ++i) {
-            if (keccak256(keys[i]) == keccak256(searchTerm)) {
-                found = values[i];
+            if (keccak256(_keys[i]) == keccak256(searchTerm)) {
+                found = _values[i];
             }
         }
         console.log("%d ignorant linear search gas", gasBefore - gasleft());
