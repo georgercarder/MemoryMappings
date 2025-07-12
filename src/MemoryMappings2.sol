@@ -46,6 +46,15 @@ library MemoryMappings2 {
         if (newValue) ++mm.totalKeys;
     }
 
+    // note that won't be sorted if keys are bytes
+    function add(MemoryMapping2 memory mm, bytes memory key, bytes memory value) internal pure {
+        bytes32 keyHash;
+        assembly {
+            keyHash := keccak256(key, mload(key))
+        }
+        add(mm, keyHash, value);
+    }
+
     function add(MemoryMapping2 memory mm, bytes32 key, bytes32 value) internal pure {
         bytes32 sortingKey = key;
         if (!mm.sorted) {
@@ -74,6 +83,14 @@ library MemoryMappings2 {
             }
         }
         return _get(mm.tree, sortingKey);
+    }
+
+    function get(MemoryMapping2 memory mm, bytes memory key) internal pure returns (bool ok, bytes32 value) {
+        bytes32 keyHash;
+        assembly {
+            keyHash := keccak256(key, mload(key))
+        }
+        return get(mm, keyHash);
     }
 
     function dump(MemoryMapping2 memory mm) internal pure returns (bytes32[] memory keys, bytes32[] memory values) {
