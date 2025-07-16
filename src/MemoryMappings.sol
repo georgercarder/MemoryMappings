@@ -141,7 +141,7 @@ library MemoryMappings {
                 if (overwrite || newValue) {
                     _tree.exists = true;
                     _tree.value = value;
-                    _tree.children = new Tree[](2);
+                    if (newValue) _tree.children = new Tree[](2);
                     return newValue;
                 }
                 return newValue;
